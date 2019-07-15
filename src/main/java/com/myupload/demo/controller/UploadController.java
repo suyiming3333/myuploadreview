@@ -256,4 +256,23 @@ public class UploadController {
         ThreadPool.getInstance().execute(new MyUploadTask(request));
         System.out.println("end");
     }
+
+    /**
+     * 利用线程池多线程上传
+     * @param request
+     * @param response
+     * @throws IOException
+     * @throws ServletException
+     */
+    @RequestMapping("/upload7")
+    public void upload7(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        System.out.println("start");
+        Collection<Part> collection = request.getParts();
+        Part part = null;
+        for (Iterator<Part> iterator = collection.iterator(); iterator.hasNext(); ) {
+            part = iterator.next();
+            ThreadPool.getInstance().execute(new MyUploadTaskByPart(part));
+        }
+        System.out.println("end");
+    }
 }

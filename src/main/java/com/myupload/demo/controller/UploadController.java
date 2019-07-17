@@ -12,8 +12,12 @@ import javax.servlet.http.Part;
 import java.io.*;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * @author suyiming3333@gmail.com
@@ -274,5 +278,36 @@ public class UploadController {
             ThreadPool.getInstance().execute(new MyUploadTaskByPart(part));
         }
         System.out.println("end");
+    }
+
+
+    @RequestMapping("/upload8")
+    public void upload8(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        System.out.println("start");
+        Collection<Part> collection = request.getParts();
+
+        //用于接收futuretask的list
+        List<Future<String>> list = new ArrayList();
+
+        Part part = null;
+        for (Iterator<Part> iterator = collection.iterator(); iterator.hasNext(); ) {
+            part = iterator.next();
+            Future<String> future = ThreadPool.getInstance().submit(new MyUploadTaskByPartCallable(part));
+            list.add(future);
+        }
+
+        ThreadPool.getInstance().shutdown();
+
+
+        list.stream().forEach((s)->{
+            try {
+                System.out.println(s.get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }});
+
+        System.out.println("阻塞。。。。。。直到所有线程完成。。。。。end");
     }
 }
